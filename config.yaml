@@ -56,7 +56,7 @@ selectors:
 
   exam:
     textarea: "textarea[placeholder*='Start writing']"
-    mic_button: "button[hint='Record']"
+    mic_button: "button[hint='Record'], button[aria-label='Start recording'], button[aria-label='Stop recording'], button[aria-label*='recording'], button[aria-label*='record']"
     check_button: "button:has-text('Check')"
     continue_button: "button:has-text('Continue'), button:has-text('Submit'), button:has-text('Next')"
     close_button: "button[aria-label='Close practice'], button[hint='Close practice']"
