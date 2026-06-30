@@ -58,6 +58,6 @@ class AIAnswerer:
         return answer
 
     def generate_speech_text(self, prompt: str) -> str:
-        system_prompt = "Generate a SPOKEN response — natural, conversational, 2-4 sentences. First person. Under 80 words."
+        system_prompt = "Generate a SPOKEN response to the prompt. Be highly accurate, use simple and extremely clear conversational English. Do NOT use any special characters, emojis, or numbers (spell them out). Keep it under 60 words and exactly 2-4 sentences to ensure fast processing."
         user_prompt = f"Provide a spoken response to this speaking task:\n\n{prompt}"
         return self._call_groq(system_prompt, user_prompt)

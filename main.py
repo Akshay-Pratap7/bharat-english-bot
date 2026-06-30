@@ -159,7 +159,7 @@ def main():
                 break
                 
             for button_key, skill_name in skills_to_check:
-                if browser.element_exists(sel["fluentedge"][button_key]):
+                if browser.element_exists(sel["fluentedge"][button_key], timeout=3000):
                     if robust_navigate(sel["fluentedge"][button_key], f"Dashboard {skill_name.capitalize()}"):
                         dashboard_clicked = True
                         current_skill = skill_name
@@ -248,12 +248,25 @@ def main():
                 elif task_type == "speaking":
                     success = handle_speaking_task(browser, ai, speaker, config, logger)
                 else:
-                    # If we are still on the practice/exam URL but task_type is unknown,
-                    # we should wait and retry rather than immediately assuming we finished.
-                    if "practice/exam" in browser.page.url:
-                        logger.warning("Still in exam page but task type is unknown. Waiting 5s and retrying...")
-                        browser.page.wait_for_timeout(5000)
+                    cont_sel = config["selectors"]["exam"].get("continue_button")
+                    if browser.element_exists(cont_sel, timeout=3000):
+                        logger.info("Unknown task type, but found a continue/next button. Clicking it to skip instructional slide...")
+                        browser.click(cont_sel)
+                        tasks_completed += 1
                         continue
+                        
+                    if "practice/exam" in browser.page.url:
+                        if not hasattr(browser, 'unknown_retries'): browser.unknown_retries = 0
+                        browser.unknown_retries += 1
+                        if browser.unknown_retries <= 3:
+                            logger.warning(f"Still in exam page but task type is unknown. Waiting 5s and retrying (Attempt {browser.unknown_retries}/3)...")
+                            browser.page.wait_for_timeout(5000)
+                            continue
+                        else:
+                            logger.error("Stuck on unknown task type for too long. Breaking out.")
+                            browser.unknown_retries = 0
+                    else:
+                        browser.unknown_retries = 0
 
                     # Check for completion
                     exit_sel = config["selectors"]["exam"].get("exit_button")

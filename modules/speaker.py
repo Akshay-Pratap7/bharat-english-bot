@@ -29,18 +29,28 @@ class Speaker:
             response.write_to_file(output_path)
             return output_path
         except Exception as e:
-            logger.warning(f"Groq TTS failed or requires terms acceptance ({e}). Falling back to local gTTS...")
+            logger.warning(f"Groq TTS failed ({e}). Falling back to edge-tts...")
             try:
-                from gtts import gTTS
+                import subprocess
                 mp3_filename = filename.replace(".wav", ".mp3")
                 output_path = str(Path(self.temp_dir) / mp3_filename)
-                tts = gTTS(text=text, lang="en")
-                tts.save(output_path)
-                logger.info(f"Fallback gTTS generated speech successfully: {output_path}")
+                # edge-tts is much faster and sounds native, boosting recognition accuracy
+                subprocess.run(["edge-tts", "--voice", "en-US-ChristopherNeural", "--text", text, "--write-media", output_path], check=True)
+                logger.info(f"Fallback edge-tts generated speech successfully: {output_path}")
                 return output_path
-            except Exception as ge:
-                logger.error(f"Fallback gTTS failed: {ge}")
-                return None
+            except Exception as ee:
+                logger.warning(f"Fallback edge-tts failed ({ee}). Trying gTTS...")
+                try:
+                    from gtts import gTTS
+                    mp3_filename = filename.replace(".wav", ".mp3")
+                    output_path = str(Path(self.temp_dir) / mp3_filename)
+                    tts = gTTS(text=text, lang="en")
+                    tts.save(output_path)
+                    logger.info(f"Fallback gTTS generated speech successfully: {output_path}")
+                    return output_path
+                except Exception as ge:
+                    logger.error(f"Fallback gTTS failed: {ge}")
+                    return None
 
     def prepare_in_browser(self, page, file_path: str) -> bool:
         try:

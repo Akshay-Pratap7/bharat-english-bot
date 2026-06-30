@@ -101,11 +101,16 @@ class BrowserController:
             logger.error(f"Login exception: {e}")
             return False
 
-    def click(self, selector: str, wait_for_nav: bool = False):
-        logger.debug(f"Clicking: {selector}")
-        self.page.wait_for_selector(selector, state="visible")
-        self.page.click(selector)
-        if wait_for_nav: self.page.wait_for_load_state("load")
+    def click(self, selector: str, wait_for_nav: bool = False) -> bool:
+        try:
+            logger.debug(f"Clicking: {selector}")
+            self.page.wait_for_selector(selector, state="visible", timeout=5000)
+            self.page.click(selector, timeout=5000)
+            if wait_for_nav: self.page.wait_for_load_state("load")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to click {selector}: {e}")
+            return False
 
     def fill_text(self, selector: str, text: str):
         logger.debug(f"Filling text into: {selector}")
